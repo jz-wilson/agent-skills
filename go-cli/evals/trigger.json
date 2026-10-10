@@ -1,0 +1,19 @@
+[
+  {"query": "write a quick go script that counts lines in the files I pass it", "should_trigger": true},
+  {"query": "I want to build a CLI in Go with subcommands for add, list and remove", "should_trigger": true},
+  {"query": "add a spinner while my Go tool downloads the release assets", "should_trigger": true},
+  {"query": "make the output of my golang command line tool prettier, colors and emoji for warnings and errors", "should_trigger": true},
+  {"query": "build a terminal UI in Go that lists my k8s pods and lets me scroll through them", "should_trigger": true},
+  {"query": "set up golangci-lint and goreleaser for this Go command", "should_trigger": true},
+  {"query": "how do I write testscript tests for my kong based CLI?", "should_trigger": true},
+  {"query": "port this bubbletea v1 model to v2", "should_trigger": true},
+  {"query": "my go cli prints ANSI junk when I pipe it to grep, fix it", "should_trigger": true},
+  {"query": "add shell completion to my Go command-line tool", "should_trigger": true},
+  {"query": "build a TypeScript CLI with clack prompts and a spinner", "should_trigger": false},
+  {"query": "write a bash script that backs up my dotfiles", "should_trigger": false},
+  {"query": "create a Go HTTP API server with chi and postgres", "should_trigger": false},
+  {"query": "explain how goroutines and channels work in Go", "should_trigger": false},
+  {"query": "build a Python CLI with typer and rich", "should_trigger": false},
+  {"query": "write a ratatui TUI in Rust for monitoring CPU", "should_trigger": false},
+  {"query": "fix the failing unit test in my Go gRPC service", "should_trigger": false}
+]

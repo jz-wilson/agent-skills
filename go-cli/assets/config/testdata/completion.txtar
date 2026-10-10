@@ -1,0 +1,17 @@
+# the shell asks via COMP_LINE; the binary prints candidates, one per line.
+# COMP_POINT is omitted on purpose: komplete then uses the end of the line, so
+# the test survives renaming the command (a hardcoded cursor offset would not).
+env COMP_LINE='greeter gr'
+exec greeter
+stdout '^greet$'
+! stdout 'completion'
+
+# flags complete after a dash
+env COMP_LINE='greeter greet --sh'
+exec greeter
+stdout '^--shout$'
+
+# without COMP_LINE it is a normal run
+env COMP_LINE=
+exec greeter completion bash
+stdout 'complete -C .* greeter'

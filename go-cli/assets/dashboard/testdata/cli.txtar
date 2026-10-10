@@ -1,0 +1,27 @@
+# piped output is TSV on stdout, nothing on stderr, no ANSI
+exec portview --root $FAKEPROC
+stdout '^22\t::\t200\tsshd$'
+stdout '^53\t127.0.0.53\t-\t-$'
+! stdout '\x1b'
+! stderr .
+
+# --no-tui is the same
+exec portview --no-tui --root $FAKEPROC
+stdout '^8765\t0.0.0.0\t100\tpython3$'
+
+# --json emits one array
+exec portview --json --root $FAKEPROC
+stdout '^\[\{"proto":"tcp6","addr":"::","port":22'
+stdout '"cmdline":"python3 -m http.server 8765"'
+
+# unknown flag is a usage error
+! exec portview --nope
+stderr 'unknown flag --nope'
+
+# missing proc root is a runtime error naming the path
+! exec portview --root $WORK/missing
+stderr 'portview: open .*/missing/net/tcp'
+
+# --help exits 0
+exec portview --help
+stdout 'Usage: portview'

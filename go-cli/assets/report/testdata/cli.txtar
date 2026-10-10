@@ -1,0 +1,15 @@
+# --help exits 0
+exec modfresh --help
+stdout 'Usage: modfresh'
+
+# bad flag is a usage error: exit 2
+! exec modfresh --nope
+stderr 'unknown flag'
+
+# --jobs 0 is rejected at parse time: exit 2
+! exec modfresh --jobs 0
+stderr 'jobs must be at least 1'
+
+# missing go.mod is a runtime error: exit 1, named once
+! exec modfresh missing/go.mod
+stderr '^modfresh: open .*missing.go.mod'
