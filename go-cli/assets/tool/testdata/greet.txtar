@@ -1,0 +1,21 @@
+# plain greeting goes to stdout, nothing on stderr
+exec greeter greet world
+stdout '^hello, world$'
+! stderr .
+
+# --json emits one JSON object
+exec greeter greet --json --shout bob
+stdout '^\{"greeting":"HELLO, BOB"\}$'
+
+# -v logs to stderr, data still on stdout
+exec greeter -v greet ann
+stdout '^hello, ann$'
+stderr 'level=DEBUG msg=greeting name=ann'
+
+# missing argument is a usage error: exit 2
+! exec greeter greet
+stderr 'expected "<name>"'
+
+# --help exits 0
+exec greeter --help
+stdout 'Usage: greeter'

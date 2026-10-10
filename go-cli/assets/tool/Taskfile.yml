@@ -1,0 +1,16 @@
+version: "3"
+
+tasks:
+  fmt: golangci-lint fmt ./...
+  lint: golangci-lint run ./...
+  test: go test ./...
+  build: go build -o bin/ .
+  check:
+    desc: Everything CI runs (lint includes go vet via govet).
+    cmds:
+      - golangci-lint fmt --diff ./...
+      - task: lint
+      - go test -race ./...
+  release:
+    desc: Tag first (git tag vX.Y.Z), then run this.
+    cmd: goreleaser release --clean
