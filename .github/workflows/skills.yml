@@ -1,0 +1,81 @@
+name: Skills
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate SKILL.md files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+      - name: Install skill-validator
+        run: go install github.com/agent-ecosystem/skill-validator/cmd/skill-validator@v1.6.2
+      # Checks every skill folder under the repo root against the agentskills.io
+      # spec: frontmatter, description length, links, structure.
+      #   --allow-dirs=evals           go-cli keeps its trigger evals there
+      #   --allow-extra-frontmatter    Claude Code fields (argument-hint, ...)
+      #   --allow-nested-paths=assets  go-cli templates are whole Go projects
+      #   --skip-orphans               new.sh copies templates; docs need not link each file
+      - name: Validate
+        run: |
+          flags=(--strict --allow-dirs=evals --allow-extra-frontmatter --allow-nested-paths=assets --skip-orphans)
+          skill-validator check "${flags[@]}" -o markdown . >> "$GITHUB_STEP_SUMMARY" || true
+          skill-validator check "${flags[@]}" --emit-annotations .
+
+  links:
+    name: Relative links resolve
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # skill-validator does not check relative links (a broken `→ Read
+      # assets/...` pointer passes it), so check every Markdown link here.
+      # Links inside fenced code blocks and inline code are examples, not links.
+      - name: Check Markdown links
+        shell: python3 {0}
+        run: |
+          import pathlib, re, subprocess, sys
+          files = subprocess.run(["git", "ls-files", "*.md"], capture_output=True, text=True, check=True).stdout.split()
+          bad = 0
+          for f in files:
+              fenced = False
+              for n, line in enumerate(pathlib.Path(f).read_text(encoding="utf-8").splitlines(), 1):
+                  if line.lstrip().startswith("```"):
+                      fenced = not fenced
+                      continue
+                  if fenced:
+                      continue
+                  for target in re.findall(r"\]\(([^)\s]+)\)", re.sub(r"`[^`]*`", "", line)):
+                      target = target.split("#")[0]
+                      if target and not re.match(r"[a-z]+:", target) and not (pathlib.Path(f).parent / target).exists():
+                          print(f"::error file={f},line={n}::broken link: {target}")
+                          bad += 1
+          print(f"{len(files)} Markdown files checked, {bad} broken links")
+          sys.exit(1 if bad else 0)
+
+  hygiene:
+    name: Line endings and shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: No CRLF in the index
+        run: |
+          git ls-files --eol | awk '$1 ~ /crlf/ {print $NF}' > "$RUNNER_TEMP/crlf.txt"
+          while read -r f; do echo "::error file=$f::CRLF line endings (see .gitattributes)"; done < "$RUNNER_TEMP/crlf.txt"
+          test ! -s "$RUNNER_TEMP/crlf.txt"
+      - name: Executable bit on scripts
+        run: |
+          git ls-files -s -- '*.sh' | awk '$1 != "100755" {print $4}' > "$RUNNER_TEMP/notexec.txt"
+          while read -r f; do echo "::error file=$f::not executable (git update-index --chmod=+x)"; done < "$RUNNER_TEMP/notexec.txt"
+          test ! -s "$RUNNER_TEMP/notexec.txt"
+      - name: shellcheck
+        run: git ls-files -z -- '*.sh' | xargs -0 --no-run-if-empty shellcheck --severity=warning
