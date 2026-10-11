@@ -53,7 +53,7 @@ Every reference has a **How it looks** section with real captured output. Match 
 
 ## Versions
 
-Checked 2026-10-09 against the GitHub API, proxy.golang.org and go.dev. Versions decay. Before pinning, re-check with `go list -m -versions <module>`, or `go get <module>@latest` and read go.mod.
+Checked 2026-10-11 against the GitHub API, proxy.golang.org and go.dev. Versions decay. Before pinning, re-check with `go list -m -versions <module>`, or `go get <module>@latest` and read go.mod.
 
 | Module | Version | Note |
 |---|---|---|
@@ -66,7 +66,7 @@ Checked 2026-10-09 against the GitHub API, proxy.golang.org and go.dev. Versions
 | `charm.land/log/v2` | v2.0.1 | Pretty `slog` handler for human-facing logs (ux.md) |
 | `charm.land/glamour/v2` | v2.0.1 | Markdown rendering, only when needed |
 | `go.abhg.dev/komplete` | v0.1.0 | Kong shell completion: bash, zsh, fish; no PowerShell (config.md) |
-| `golang.org/x/mod` | v0.41.0 | `modfile`, `module.EscapePath`, `semver` for go.mod tooling (report asset) |
+| `golang.org/x/mod` | v0.42.0 | `modfile`, `module.EscapePath`, `semver` for go.mod tooling (report asset) |
 | `golang.org/x/sync` | v0.24.0 | `errgroup` for bounded concurrency (recipes.md) |
 | `github.com/charmbracelet/colorprofile` | v0.4.3 | Per-stream color/emoji decision (ux.md) |
 | `golang.org/x/term` | v0.47.0 | TTY detection; replaces `mattn/go-isatty` |
