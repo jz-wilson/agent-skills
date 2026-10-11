@@ -1,0 +1,50 @@
+name: go-cli templates
+
+# The go-cli skill's templates are real Go projects. Run the same checks the
+# skill's own refresh.sh runs, one job per template, when any of them changes.
+on:
+  pull_request:
+    paths:
+      - go-cli/assets/**
+      - .github/workflows/go-cli-assets.yml
+  push:
+    branches: [main]
+    paths:
+      - go-cli/assets/**
+      - .github/workflows/go-cli-assets.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: ${{ matrix.asset }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        asset: [config, dashboard, recipes, report, script, tool, tui, ux]
+    defaults:
+      run:
+        working-directory: go-cli/assets/${{ matrix.asset }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go-cli/assets/${{ matrix.asset }}/go.mod
+          cache-dependency-path: go-cli/assets/${{ matrix.asset }}/go.sum
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt needed: $unformatted"
+            exit 1
+          fi
+      - run: go vet ./...
+      - run: go test -race -count=1 ./...
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.14.0
+          working-directory: go-cli/assets/${{ matrix.asset }}
+          # One shared config for every template, as in scripts/refresh.sh.
+          args: --config=${{ github.workspace }}/go-cli/assets/tool/.golangci.yml
