@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Refresh the go-cli skill: upgrade every example in assets/ to the latest
 # dependencies, re-verify (gofmt, vet, test -race, golangci-lint), report what
-# moved, and with --write copy the new go.mod/go.sum back and re-sync the code
-# blocks in references/*.md from assets/ (assets are the source of truth).
+# moved, and with --write copy the new go.mod/go.sum back and re-sync
+# references/*.md: the line counts on its `→ Read assets/...` pointers and the
+# Contents blocks (assets are the source of truth; the docs hold no copies).
 #
 # Usage (Linux, macOS, or WSL; not Git Bash on Windows - see SKILL.md):
 #   scripts/refresh.sh            # dry run: upgrade + verify in a temp dir
@@ -17,7 +18,7 @@ sync_docs() {
   python3 - "$SKILL" <<'PY'
 import pathlib, re, sys
 root = pathlib.Path(sys.argv[1])
-pat = re.compile(r"<!-- asset: (\S+) -->\n(```[a-z]*\n)(.*?)(\n```)", re.S)
+ptr_pat = re.compile(r"→ Read \[`assets/(\S+?)`\]\(\.\./assets/\S+?\) \((\d+) lines")
 toc_pat = re.compile(r"<!-- toc -->\n.*?<!-- /toc -->\n\n", re.S)
 
 def headings(lines):
@@ -50,14 +51,14 @@ def with_toc(text):
     return body[:h1_end] + "\n" + toc + body[h1_end:].lstrip("\n")
 for md in sorted((root / "references").glob("*.md")):
     text = md.read_text(encoding="utf-8")
-    def repl(m):
-        body = (root / "assets" / m.group(1)).read_text(encoding="utf-8").rstrip("\n")
-        return f"<!-- asset: {m.group(1)} -->\n{m.group(2)}{body}{m.group(4)}"
-    new, n = pat.subn(repl, text)
+    def repl(m):  # keep each pointer's line count current; a missing file fails
+        n = (root / "assets" / m.group(1)).read_text(encoding="utf-8").count("\n")
+        return m.group(0).replace(f"({m.group(2)} lines", f"({n} lines")
+    new, n = ptr_pat.subn(repl, text)
     new = with_toc(new)
     if new != text:
         md.write_text(new, encoding="utf-8", newline="\n")
-    print(f"  {md.name}: {n} asset blocks{' (updated)' if new != text else ''}")
+    print(f"  {md.name}: {n} asset pointers{' (updated)' if new != text else ''}")
 PY
 }
 
