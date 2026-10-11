@@ -156,12 +156,12 @@ Measured 2026-10-09 on WSL 2 (Ubuntu 24.04, zsh, Go 1.27.2). Everything here app
 
 ## Keeping the skill current
 
-`assets/` holds every example as a real project. That's the source of truth: copy files from there instead of retyping them from the docs. The `<!-- asset: … -->` code blocks in `references/` are generated from them.
+`assets/` holds every example as a real project. That's the source of truth: copy files from there instead of retyping them. The references hold the rules and point at asset files (`→ Read assets/...`) rather than repeating their code, so read the named file when you need the code.
 
 ```bash
 scripts/refresh.sh            # upgrade all deps in a temp copy, run gofmt/vet/test -race/lint, report
 scripts/refresh.sh --write    # keep the upgrades and re-sync the reference code blocks
-scripts/refresh.sh --sync     # after hand-editing an asset: re-sync the docs and Contents blocks only
+scripts/refresh.sh --sync     # after hand-editing an asset: re-sync pointer line counts and Contents blocks only
 ```
 
 **Monthly, automatically:** a systemd user timer in WSL (`go-cli-refresh.timer`, `OnCalendar=monthly`, `Persistent=true`, so a missed run happens at the next WSL start) runs `scripts/scheduled-refresh.sh`. That does a dry-run refresh and pushes to ntfy. The unit sets `Environment=NTFY_URL=https://<ntfy-host>/<topic>`, and the token comes from `NTFY_TOKEN` or the `NTFY_TOKEN=` line of `$NTFY_ENV` (default `~/.config/vault-nightly/ntfy.env`). With either missing it logs what it would have sent.
