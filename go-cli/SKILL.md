@@ -164,7 +164,7 @@ scripts/refresh.sh --write    # keep the upgrades and re-sync the reference code
 scripts/refresh.sh --sync     # after hand-editing an asset: re-sync pointer line counts and Contents blocks only
 ```
 
-**Monthly, automatically:** a systemd user timer in WSL (`go-cli-refresh.timer`, `OnCalendar=monthly`, `Persistent=true`, so a missed run happens at the next WSL start) runs `scripts/scheduled-refresh.sh`. That does a dry-run refresh and pushes to ntfy. The unit sets `Environment=NTFY_URL=https://<ntfy-host>/<topic>`, and the token comes from `NTFY_TOKEN` or the `NTFY_TOKEN=` line of `$NTFY_ENV` (default `~/.config/vault-nightly/ntfy.env`). With either missing it logs what it would have sent.
+**Monthly, locally (optional; use this or the CI workflow below, not both):** a systemd user timer in WSL (`go-cli-refresh.timer`, `OnCalendar=monthly`, `Persistent=true`, so a missed run happens at the next WSL start) runs `scripts/scheduled-refresh.sh`. That does a dry-run refresh and pushes to ntfy. The unit sets `Environment=NTFY_URL=https://<ntfy-host>/<topic>`, and the token comes from `NTFY_TOKEN` or the `NTFY_TOKEN=` line of `$NTFY_ENV` (default `~/.config/vault-nightly/ntfy.env`). With either missing it logs what it would have sent.
 
 | Result | Push |
 |---|---|
@@ -174,7 +174,7 @@ scripts/refresh.sh --sync     # after hand-editing an asset: re-sync pointer lin
 
 The log is at `~/.local/state/go-cli-refresh/last.log`. Check the timer with `systemctl --user list-timers go-cli-refresh.timer`, or run it now with `systemctl --user start go-cli-refresh.service`. All three result paths were tested against a local ntfy stand-in, and a real systemd run succeeded silently, on 2026-10-09.
 
-**Monthly, in the repo's CI:** `.github/workflows/go-cli-refresh.yml` in the skills repo runs the same dry-run refresh on GitHub (09:17 UTC on the 1st, or by hand with `gh workflow run go-cli-refresh.yml`). It installs the Go minor and golangci-lint version the skill documents, so a newer release shows up as an update, and it opens (or comments on) one issue when a template fails and one when upgrades are waiting for `--write`.
+**Monthly, in the repo's CI (the default):** `.github/workflows/go-cli-refresh.yml` in the skills repo runs the same dry-run refresh on GitHub (09:17 UTC on the 1st, or by hand with `gh workflow run go-cli-refresh.yml`). It installs the Go minor and golangci-lint version the skill documents, so a newer release shows up as an update, and it opens (or comments on) one issue when a template fails and one when upgrades are waiting for `--write`.
 
 To check that the description still triggers, run `evals/trigger.json` through skill-creator's `scripts/run_eval.py`. Last run on 2026-10-11: 17/17, every positive 3/3, all 7 negatives quiet. The description must stay valid YAML (no `: ` inside it), within the spec's 1,024 characters, and prose rather than a comma list; the repo's CI (`skill-validator --strict`) enforces all three. When trimming it, re-run the evals: dropping the "write a Go script…" example once took the script query to 0/3. "add a spinner while my Go tool downloads…" has been flaky (2/6 to 5/6 across runs). Two harness caveats:
 1. On Windows the stock script fails (`select()` on pipes, WinError 10038).
