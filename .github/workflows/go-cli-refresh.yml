@@ -37,6 +37,8 @@ jobs:
 
       - name: Refresh (dry run)
         id: refresh
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # authenticated GitHub API calls in refresh.sh
         run: |
           log="$RUNNER_TEMP/refresh.log"
           if go-cli/scripts/refresh.sh > "$log" 2>&1; then rc=0; else rc=$?; fi

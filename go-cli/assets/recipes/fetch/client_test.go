@@ -59,6 +59,16 @@ func TestClientErrorsAreNotRetried(t *testing.T) {
 	}
 }
 
+func TestRefusesOversizedBody(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write(make([]byte, maxBody+1))
+	}))
+	t.Cleanup(srv.Close)
+	if _, err := testClient().Get(t.Context(), srv.URL); err == nil {
+		t.Fatal("want an error for a body over maxBody")
+	}
+}
+
 func TestHonorsRetryAfter(t *testing.T) {
 	srv, _ := flaky(t, 1, http.StatusTooManyRequests, "1")
 	start := time.Now()
