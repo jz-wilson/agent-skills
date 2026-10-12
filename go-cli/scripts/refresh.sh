@@ -13,6 +13,10 @@ set -euo pipefail
 
 SKILL=$(cd "$(dirname "$0")/.." && pwd)
 MODE=${1:-}
+case $MODE in
+  "" | --write | --sync) ;;
+  *) echo "refresh: unknown argument '$MODE' (use --write or --sync)" >&2; exit 2 ;;
+esac
 
 sync_docs() {
   python3 - "$SKILL" <<'PY'
@@ -74,7 +78,8 @@ WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 cp -r "$SKILL/assets/." "$WORK/"
 
-latest() { curl -fsS "https://api.github.com/repos/$1/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p'; }
+# GITHUB_TOKEN, when set (as in CI), avoids the anonymous rate limit on shared IPs.
+latest() { curl -fsS ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} "https://api.github.com/repos/$1/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p'; }
 echo "Toolchain (installed -> latest):"
 echo "  go            $(go env GOVERSION) -> $(curl -fsS 'https://go.dev/VERSION?m=text' | head -1)"
 echo "  golangci-lint $(golangci-lint version --short 2>/dev/null || golangci-lint --version | awk '{print $4}') -> $(latest golangci/golangci-lint)"

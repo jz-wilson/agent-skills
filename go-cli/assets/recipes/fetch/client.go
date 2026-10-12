@@ -78,7 +78,11 @@ func (c *Client) get(ctx context.Context, url string) (body []byte, retryAfter t
 
 	switch {
 	case resp.StatusCode/100 == 2:
-		body, err := io.ReadAll(io.LimitReader(resp.Body, maxBody))
+		// Read one byte past the cap so an oversized body is an error, not silently cut.
+		body, err := io.ReadAll(io.LimitReader(resp.Body, maxBody+1))
+		if err == nil && len(body) > maxBody {
+			err = fmt.Errorf("response over %d MiB (GET %s)", maxBody>>20, url)
+		}
 		return body, -1, err
 	case resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500:
 		return nil, parseRetryAfter(resp.Header.Get("Retry-After")), fmt.Errorf("%s (GET %s)", resp.Status, url)

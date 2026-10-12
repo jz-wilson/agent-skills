@@ -86,7 +86,7 @@ A literal argument stays literal: `proc exec --capture -- printf '%s\n' 'a b; ec
 - Log each retry at warn with `slog`. The error that finally surfaces is the last attempt's, printed once by `run`.
 - Test with `httptest.Server`: a real listener, so status, header and body paths are all exercised.
 
-→ Read [`assets/recipes/fetch/client.go`](../assets/recipes/fetch/client.go) (100 lines; builds, tests and lints clean).
+→ Read [`assets/recipes/fetch/client.go`](../assets/recipes/fetch/client.go) (104 lines; builds, tests and lints clean).
 
 The command calls `newClient("fetch/"+buildVersion(), c.Timeout, c.Tries, env.Log).Get(ctx, c.URL)` and writes the body to stdout. Four tests, all pass under `-race`, against an `httptest.Server` whose handler counts hits in an `atomic.Int32`, asserts the `User-Agent`, and fails the first `n` requests with a given status (and optional `Retry-After`) before answering `ok`: two 503s then success (3 hits), give up after `tries`, a 404 is hit once, `Retry-After: 1` waits at least 1 s. Tests set `c.backoff = time.Millisecond` to stay fast.
 
