@@ -3,8 +3,14 @@
 Personal agent skills, installable via the [`skills`](https://skills.sh) CLI:
 
 ```bash
-npx skills add jz-wilson/agent-skills -g -y
+npx skills add jz-wilson/agent-skills -g -y                  # every skill
+npx skills add jz-wilson/agent-skills --skill go-cli -g -y   # one skill
+npx skills add jz-wilson/agent-skills --list                 # see what's here
 ```
+
+It works with Claude Code, Codex, OpenCode, Cursor and other harnesses: without `-a` it asks which agents to install into, or name them with `-a claude-code -a opencode` (`-a '*'` for all). `-g` installs for your user rather than the current project, and `bunx` works in place of `npx`.
+
+`go-cli`'s scripts and templates also need Go 1.27, golangci-lint v2 and a POSIX shell.
 
 ## Skills
 
